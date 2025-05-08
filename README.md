@@ -1,4 +1,4 @@
-# Hochbaum's Pseudoflow (HPF) Algorithm for (Linear) Fully Parametric Minimum Cut
+# Hochbaum's Pseudoflow (HPF) Algorithm for (Linear) Fully Parametric Minimum Cut on conductance*
 This package provides a parametric implementation of pseudoflow for minimum cut on directed graphs. In the parametric minimum cut problem, the capacity of source-adjacent arcs is monotone non-decreasing in the parameter `lambda` whereas the capacity of sink-adjacent arcs is monotone non-increasing in `lambda`. This solver requires that the capacities of source and sink adjacent arcs are linear in `lambda`: `capacity = constant + multiplier * lambda`.
 
 This fully parametric solver finds the optimal minimum cut for all `lambda` values in a given range. The solution for all lambda values is represented with `O(n)` intervals for the parameter lambda. In each interval, the optimal minimum cut remains the same.
