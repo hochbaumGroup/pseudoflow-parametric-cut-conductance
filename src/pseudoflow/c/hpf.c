@@ -310,7 +310,8 @@ readData
 	*arcMatrixPointer = arcMatrix;
 }
 
-static void writeOutput (char *filename, int numBreakpoints, int numNodes, double* breakpoints, int* cuts, int* stats, double* times)
+static void writeOutput (char *filename, int numBreakpoints, int numNodes, double* breakpoints,
+	double* cuts, int* stats, double* times)
 {
 /*************************************************************************
 writeOutput
@@ -351,18 +352,8 @@ writeOutput
 	for (i = 0; i < numNodes; i++)
 	{
 		fprintf(f, "n %d ",i);
-		for (j = 0; j < numBreakpoints; j++)
-		{
-			fprintf(f, "%d", cuts[i + j * numNodes]);
-			if (j < numBreakpoints - 1)
-			{
-				fprintf(f, " ");
-			}
-			else
-			{
-				fprintf(f, "\n");
-			}
-		}
+		fprintf(f, "%lf\n", cuts[i]);
+
 	}
 
 	// close output file
@@ -406,7 +397,7 @@ main - Main function
 
 	// prepare output solver
 	int numBreakpoints;
-	int *cuts;
+	double *cuts;
 	double *breakpoints;
 	int stats[5];
 	double times[3];

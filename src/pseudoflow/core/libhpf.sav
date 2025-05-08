@@ -227,7 +227,6 @@ static uint roundNegativeCapacity = 0;
 
 static double LAMBDA_LOW;
 static double LAMBDA_HIGH;
-// static double oldLambdaIntersect = -1.0;
 
 // memory management
 static char * all_sink = NULL;
@@ -241,10 +240,6 @@ static Node *nodeListCache[2]={NULL,NULL};;
 static Node *sourceSetCache[2]={NULL,NULL};;
 static Node *sinkSetCache[2]={NULL,NULL};;
 static char *pdifferenceCache = NULL;
-
-static time_t rawtime;
-static struct tm *info;
-
 
 double dabs(double value)
 {
@@ -532,12 +527,12 @@ pushDownward
 }
 
 static void printCutProblem(CutProblem *p){
-    // printf("numNodes: %u\n " ,p->numNodesInList);
-    // printf("numSource %u\n" ,p->numSourceSet);
-    // printf("numSink: %u\n" ,p->numSinkSet);
-    // printf("numArcs: %u\n" ,p->numArcs);
-    printf("c solved: %u\n" ,p->solved);
-    printf("c lambda:%.12lf\n" ,p->lambdaValue);
+    printf("numNodes: %u\n " ,p->numNodesInList);
+    printf("numSource %u\n" ,p->numSourceSet);
+    printf("numSink: %u\n" ,p->numSinkSet);
+    printf("numArcs: %u\n" ,p->numArcs);
+    printf("solved: %u\n" ,p->solved);
+    printf("lambda:%.12lf\n" ,p->lambdaValue);
     int i;
     // printf("[from, to](capacity,constant,multiplier)\n");
     // for(i=0;i<p->numArcs;++i)
@@ -556,12 +551,12 @@ static void printCutProblem(CutProblem *p){
         for(i=0;i<numNodesSuper;++i)
         {
 					sourcenodes += p->optimalSourceSetIndicator[i];
-          printf("%u ",p->optimalSourceSetIndicator[i]);
+            printf("%u ",p->optimalSourceSetIndicator[i]);
         }
 				printf("\n");
 				printf("Nodes in source set: %d\n", sourcenodes);
     }
-    // printf("SourceSuper: %d, SinkSuper: %d\n", sourceSuper, sinkSuper);
+    printf("SourceSuper: %d, SinkSuper: %d\n", sourceSuper, sinkSuper);
     printf("\n");
     printf("\n");
 }
@@ -1345,7 +1340,6 @@ static void readGraphSuper(double * arcMatrix)
 readData
 *************************************************************************/
 {
-	// printf("OG #nodes %d #arcs %d\n", numNodesSuper, numArcsSuper);
 	if ((nodeListSuper = (Node *)malloc(numNodesSuper * sizeof(Node))) == NULL)
 	{
 		printf("Could not allocate memory.\n");
@@ -1803,9 +1797,8 @@ addBreakpoint - Adds a breakpoint to the linkedlist
 		exit(0);
 	}
 
-	time( &rawtime );
-	info = localtime( &rawtime );
-  printf("c Found %d breakpoint with lambda = %lf at %s\n", ++numBreakpoints, lambdaValue, asctime(info));  fflush(stdout);
+
+  printf("c Found %d breakpoint with lambda = %lf\n", ++numBreakpoints, lambdaValue);
 	/* assign values */
 	newBreakpoint->lambdaValue = lambdaValue;
 	newBreakpoint->next = NULL;
@@ -1826,7 +1819,6 @@ addBreakpoint - Adds a breakpoint to the linkedlist
         if ( sourceSetIndicator[i] && nodeBreakpoints[i] > lambdaValue )
         {
             nodeBreakpoints[i] = lambdaValue;
-						printf("c node %d is in the breakpoint\n", i);
         }
 	}
 
@@ -2075,8 +2067,6 @@ solveProblem - solves a single instance of cut problem
     problem->solved =1;
 
 	printCutProblem(problem);
-	// printf("lambda:%.12lf\n" ,problem->lambdaValue);
-
 	freeMemorySolve();
 }
 
@@ -2100,7 +2090,7 @@ static double internalCutCapacity(char *optimalSourceSetIndicator) {
     int from, to;
     double arc_capacity;
     double capacity = 0;
-		// printf("OG STARTING internalCutCapacity\n");
+
     for (int i=0; i < numArcsSuper; i++)
     {
         from = arcListSuper[i].from->originalIndex;
@@ -2108,13 +2098,11 @@ static double internalCutCapacity(char *optimalSourceSetIndicator) {
         arc_capacity = arcListSuper[i].constant;
         if (optimalSourceSetIndicator[from] == 1
 					&& optimalSourceSetIndicator[to] == 0
-					&& from != sourceSuper) // && to != sinkSuper)
+					&& from != sourceSuper && to != sinkSuper)
         {
             capacity += arc_capacity;
-						// printf("OG capacity from %d to %d is %lf\n", from, to, arc_capacity);
         }
     }
-		printf("OG internalCutCapacity is %lf\n", capacity);
     return capacity;
 }
 
@@ -2156,25 +2144,20 @@ parametricCut - Recursive function that solves the parametric cut problem
 			highProblem->optimalSourceSetIndicator);
     uint num_nodes_different_low_high = sum_array_char(pdifference_low_high,
 			numNodesSuper);
-		printf("OG Number of nodes in different sides between the low and high problems %d\n", num_nodes_different_low_high);
+		printf("Difference low high is %d\n", pdifference_low_high);
 
 	/* find lambda value for which the optimal cut functions(expressed as a function of lambda)
 	for the lower bound and upper bound problem intersect. */
 	if (num_nodes_different_low_high > 0)
 	{
-        printf("OG find intersection using method outlined in Hochbaum 2003 on inverse spanning-tree.\n");
+        // find intersection using method outlined in Hochbaum 2003 on inverse spanning-tree.
         double Klow = internalCutCapacity(lowProblem->optimalSourceSetIndicator);
         double Khigh = internalCutCapacity(highProblem->optimalSourceSetIndicator);
+				printf("Klow %ld Khigh %ld\n", Klow, Khigh);
         double K12 = Klow - Khigh;
-				printf("OG intCutCapLow %lf intCutCapHigh %lf difference %lf\n", Klow, Khigh, K12);
 
         double lambdaIntersect = computeIntersect(pdifference_low_high, K12);
-				// if (lambdaIntersect == oldLambdaIntersect)
-				// {
-				// 	lambdaIntersect += (LAMBDA_HIGH-lambdaIntersect)/2;
-				// }
-				// oldLambdaIntersect = lambdaIntersect;
-				printf("OG lambdaIntersect: %lf\n", lambdaIntersect);
+				printf("lambdaIntersect: %ld\n", lambdaIntersect);
 
         // find minimal and maximal source set at lambdaIntersect.
         // Add/subtract TOL to prevent numerical issues.
@@ -2204,9 +2187,9 @@ parametricCut - Recursive function that solves the parametric cut problem
 					maximalIntersect.optimalSourceSetIndicator);
 				// printf("difference soursesets\n");
         uint num_nodes_different_min_max = sum_array_char(pdifference_min_max_intersect, numNodesSuper);
-				// if (num_nodes_different_min_max > 0){
-				//  printf("OG num_node_difference_min_max %d\n", num_nodes_different_min_max); fflush;
-				// }
+				if (num_nodes_different_min_max > 0){
+				 printf("*** num_node_difference_min_max %d\n", num_nodes_different_min_max); fflush;
+				}
 
         if (num_nodes_different_min_max > 0 )
         {

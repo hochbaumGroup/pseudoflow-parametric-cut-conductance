@@ -1,6 +1,6 @@
-OPT = -O2 -march=native
+OPT = -O4 -march=native
 CFLAGS = -c -fpic -Wall -std=gnu99 $(OPT)
-LDFLAGS =
+LDFLAGS = --static
 
 SOURCES = hpf.c ../core/libhpf.c
 TARGET = hpf
